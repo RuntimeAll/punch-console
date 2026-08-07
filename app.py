@@ -246,18 +246,36 @@ def page_book(name: str) -> None:
         return
 
     with ui.column().classes("w-full max-w-3xl mx-auto p-3 gap-3"):
-        with ui.row().classes("items-center gap-2 w-full"):
-            ui.label(card["科目"] or "-").classes("text-sm")
-            ui.label(card["年级"] or "年级未定").classes("text-sm")
-            ui.space()
-            status = ui.select(data.STATUSES, value=card["状态"], label="状态").classes("w-32")
+        # 册信息（科目/年级/绑定/状态可改，铺底猜错的在这儿纠）
+        with ui.card().classes("w-full"):
+            with ui.row().classes("w-full items-end gap-2"):
+                sub_in = ui.input("科目", value=card["科目"]).classes("w-24")
+                grade_in = ui.input("年级", value=card["年级"]).classes("flex-1")
+                status_in = ui.select(data.STATUSES, value=card["状态"], label="状态").classes("w-28")
+            with ui.row().classes("w-full items-end gap-2"):
+                bind_type = ui.select(
+                    ["考点", "年级"], value=card["绑定"].get("类型", "考点"), label="绑定类型"
+                ).classes("w-28")
+                bind_val = ui.input(
+                    "绑定值（逗号分隔）", value="，".join(card["绑定"].get("值") or [])
+                ).classes("flex-1")
 
-            def save_status() -> None:
-                card["状态"] = status.value
-                data.save_card(card)
-                ui.notify("状态已保存：%s" % status.value, type="positive")
+                def save_info() -> None:
+                    card["科目"] = (sub_in.value or "").strip()
+                    card["年级"] = (grade_in.value or "").strip()
+                    card["状态"] = status_in.value
+                    card["绑定"] = {
+                        "类型": bind_type.value,
+                        "值": [
+                            s.strip()
+                            for s in str(bind_val.value or "").replace("，", ",").split(",")
+                            if s.strip()
+                        ],
+                    }
+                    data.save_card(card)
+                    ui.notify("册信息已保存", type="positive")
 
-            status.on_value_change(lambda _: save_status())
+                ui.button("保存", icon="save", on_click=save_info).props("color=primary dense")
 
         with ui.tabs().classes("w-full") as tabs:
             for v in card["版本"]:
