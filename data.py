@@ -183,9 +183,17 @@ def normalize_card(card: dict, name: str) -> dict:
         base["三步走"] = {s: steps.get(s, "todo") for s in STEPS}
         imgs = base.get("图目录") or {}
         base["图目录"] = {"A": imgs.get("A", ""), "B": imgs.get("B", "")}
-        if not isinstance(base.get("销量"), list):
-            base["销量"] = []
+        sales = base.get("销量")
+        if not isinstance(sales, list):
+            sales = []
+        # 销量行必须是字典：手改卡里混进一个字符串，version_sales 会 AttributeError，
+        # 而看板要合计全部册的销量 —— 一行坏数据能把整个看板打成 500。
+        base["销量"] = [r for r in sales if isinstance(r, dict)]
         fixed.append(base)
+    # 手改卡把版本项写成了字符串（如 "版本": ["正册"]）会被上面整条滤掉，
+    # 版本数组不能空——页面按 版本[0] 取首个 tab，空数组会 IndexError 打成 500。
+    if not fixed:
+        fixed = [new_version()]
     card["版本"] = fixed
     return card
 
