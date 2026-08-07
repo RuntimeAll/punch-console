@@ -17,6 +17,17 @@ uv pip install -p .venv nicegui pymupdf requests
 
 手机与电脑同一个 WiFi，浏览器开 `http://<电脑内网IP>:8787` 即可（服务 host=0.0.0.0，端口 8787）。
 
+## 常驻（当前机器已配好，重装才需要重做）
+
+- **开机自启** = 启动文件夹快捷方式 `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\punch-console.lnk`，
+  指向 [serve.ps1](serve.ps1)（端口已被占则不重复起；日志落 `service.log` / `service.err`）。
+  schtasks / 服务注册在本机都要提权，启动文件夹**免提权**，够用。
+- **手动拉起 / 重启**：直接跑 `powershell -File serve.ps1`；要强制重启先按端口杀
+  `netstat -ano | findstr :8787` 找 PID → `taskkill /F /PID <pid>`（🔴 别按进程名杀 python，会误伤别的服务）。
+- **防火墙**（手机连不上九成是它）：入站放行 8787，需管理员跑一次：
+  `netsh advfirewall firewall add rule name="punch-console 8787" dir=in action=allow protocol=TCP localport=8787`
+  （删除 = 同名 `delete rule`；本机已加）。
+
 ## 数据在哪
 
 | 东西 | 位置 |
