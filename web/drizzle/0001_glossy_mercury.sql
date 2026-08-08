@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `question_pos_uq` ON `question` (`doc_id`,`day`,`section`,`seq`);
