@@ -1,7 +1,7 @@
 /**
  * 资料产线控制台 · SQLite schema(PRD-023 v2-M1)
  *
- * 8 张表 + 1 张 FTS5 虚表,0 触发器。
+ * 9 张表 + 1 张 FTS5 虚表,0 触发器。
  * 列名用中文(与设计稿附二一致),TS 侧用 ASCII 键方便写代码。
  * 状态字段只存 3 个:task.状态 / doc.人工态 / question.实算——其余一律现算。
  */
@@ -141,6 +141,37 @@ export const collectionItem = sqliteTable(
   ],
 );
 
+// ------------------------------------------------------------------ doc_member
+
+/**
+ * 册级归属:一本合刊由哪几册组成。
+ *
+ * 🔴 口径(2026-08-08 定,别再混):
+ *   - `doc_member`  = **册级**归属,给人读、给导航用。合刊 ←→ 成员册的名分关系,
+ *     成员册的题一道没入库也能登记(科学测量合刊就是这种:五天的题还没拆到题级)。
+ *   - `collection_item` = **题级**引用,给渲染用。合刊真要排版出卷时,以它为准逐题取。
+ *   两者互补不冲突:册级说"这本由哪几册合成",题级说"这一页印哪几道题";
+ *   有题级数据时渲染以 collection_item 为准,没有也不影响册级导航成立。
+ */
+export const docMember = sqliteTable(
+  "doc_member",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    collectionId: integer("合刊doc_id")
+      .notNull()
+      .references(() => doc.id),
+    memberId: integer("成员doc_id")
+      .notNull()
+      .references(() => doc.id),
+    order: integer("排序").default(0),
+  },
+  (t) => [
+    uniqueIndex("doc_member_uq").on(t.collectionId, t.memberId),
+    index("doc_member_collection_idx").on(t.collectionId),
+    index("doc_member_member_idx").on(t.memberId),
+  ],
+);
+
 // ------------------------------------------------------------------ material
 
 /** 发帖物料:一册 × 一个账号 × 一版文案 */
@@ -178,7 +209,11 @@ export const asset = sqliteTable(
     docId: integer("doc_id")
       .notNull()
       .references(() => doc.id),
-    /** 图A | 图B | 题目卷 | 答案卷 | 封面 */
+    /**
+     * 图A | 图B | 页图 | 题目卷 | 答案卷 | 合订卷 | 封面
+     * 合订卷 = 题目与解析装订在同一个 PDF 里(专项老件常见),它一份顶两份;
+     * 页图   = 成品逐页图(_交付/xx-图片/),不分 A/B 号水印。
+     */
     type: text("类型").notNull(),
     path: text("路径").notNull(),
     order: integer("配图顺序"),

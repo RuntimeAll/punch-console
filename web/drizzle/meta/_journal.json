@@ -22,6 +22,13 @@
       "when": 1786164565191,
       "tag": "0002_complex_skaar",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1786180103936,
+      "tag": "0003_lonely_solo",
+      "breakpoints": true
     }
   ]
 }
