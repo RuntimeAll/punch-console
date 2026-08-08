@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { LaneBadge } from "@/components/lane-badge";
+import { Reveal } from "@/components/reveal";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -100,7 +101,17 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
             {doc.线上book_id || <span className="text-muted-foreground">未录 prod</span>}
           </Row>
           <Row k="源目录">
-            <span className="break-all text-xs text-muted-foreground">{doc.源文件路径}</span>
+            {doc.源文件路径 ? (
+              <Reveal
+                路径={doc.源文件路径}
+                title="在电脑上打开这个文件夹"
+                className="break-all text-left text-xs text-muted-foreground hover:text-sky-600 hover:underline cursor-pointer"
+              >
+                📂 {doc.源文件路径}
+              </Reveal>
+            ) : (
+              <span className="text-xs text-muted-foreground">—</span>
+            )}
           </Row>
           {kps.length > 0 && (
             <Row k="考点">
@@ -242,11 +253,23 @@ function AssetGroup({
   const body = (
     <div className="space-y-0.5">
       {rows.map((a) => (
-        <div key={a.id} className="flex gap-2 text-xs">
+        <div key={a.id} className="flex gap-2 text-xs items-start group">
           <Badge variant="outline" className="text-[10px] shrink-0 font-normal">
             {a.类型}
           </Badge>
-          <span className="break-all text-muted-foreground">{a.路径}</span>
+          <Reveal
+            路径={a.路径}
+            className="break-all text-left text-muted-foreground hover:text-sky-600 hover:underline flex-1 cursor-pointer"
+          >
+            {a.路径}
+          </Reveal>
+          <Reveal
+            路径={a.路径}
+            mode="open"
+            className="shrink-0 text-[11px] text-muted-foreground hover:text-sky-600 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+          >
+            打开
+          </Reveal>
         </div>
       ))}
     </div>

@@ -4,6 +4,10 @@
 export const DB_PATH =
   process.env.PUNCH_DB || String.raw`D:\workplace\ai-bkb\举一反三产物\资料库.db`;
 
+/** 工作区根:允许「在资源管理器中打开」的边界,出了这个范围一律拒绝。 */
+export const WORKSPACE_ROOT =
+  process.env.PUNCH_WORKSPACE || String.raw`D:\workplace\ai-bkb`;
+
 /** 打卡产物根(产线卡/物料/图/PDF 都在这下面)。 */
 export const PUNCH_ROOT =
   process.env.PUNCH_ROOT || String.raw`D:\workplace\ai-bkb\举一反三产物\打卡`;
