@@ -2,3 +2,15 @@
 __pycache__/
 *.pyc
 .nicegui/
+
+# v2 web/ 与语意轴 sidecar 的本地产物
+embed/.venv/
+embed/models/
+web/.data/
+# SQLite 唯一参照物在 举一反三产物/ 下,不入代码库(这条是防手滑复制进来)
+*.db
+*.db-wal
+*.db-shm
+
+service.log
+service.err
