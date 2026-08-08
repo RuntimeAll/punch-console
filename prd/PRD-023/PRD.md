@@ -21,11 +21,16 @@
 ### v2-M1(本批,先能用)
 - `web/` Next.js + shadcn/ui + Tailwind + Drizzle + better-sqlite3;手机优先;端口 dev:3000,可用后接管 :8787(v1 NiceGUI 届时退役)。
 - Schema 7 表(设计稿附二):doc / question / collection_item / material / asset / task+generator / publish_log。0 触发器。
+  🔴 2026-08-08 补 **doc_member**(册级归属:这本合刊由哪几册组成)——与 collection_item(题级引用)互补:
+  成员册的题还没入库时册级关系照样成立(科学测量合刊 5 员就是这种),有题级数据时渲染取题仍以 collection_item 为准。
 - **存量导入(轻)**:25 册打卡元数据+物料从 v1 产线卡/解析结果直搬(book/material/asset 行);
   三升四 620 题(days JSON 已结构化)直搬入 question 当检索种子——**不属深度处理**。
 - **三路混合检索**:考点筛选 + FTS5 关键词 + 向量语意(本地 bge-small-zh-v1.5,ModelScope 下载,
   python venv sidecar `embed.py`;向量存 question BLOB 列,几千题暴力余弦)。🔴 与 PRD-021(线上 pgvector)互挂指针不合并。
-- 页面 M1:资料库 / 册详情(四项体检现算)/ 题目库(三路检索+考点覆盖地图)。
+- 页面 M1:资料库 / 册详情(体检现算)/ 题目库(三路检索+考点覆盖地图)。
+  🔴 **体检按类型分档**(2026-08-08 验收纠偏,细则=[分型处理规程](分型处理规程.md) §7):四项一刀切会让专项/试卷永远红,
+  已产完的册子卡在「在产」。现算三态 绿/缺/免——打卡查四项,专项·合卷查产物+实算(没拆题=免、不查物料网盘),
+  试卷讲义练习册查源文件+产物(实算=免),课本只查档案在(绝不判题量>0)。
 
 ### v2-M2(紧随)
 - 发布台(发帖包+publish_log)/ 看板(泳道现算)/ 收件台(传素材+一句话+排序;Word 录入与回收=agent 任务)。
