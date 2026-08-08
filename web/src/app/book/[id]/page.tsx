@@ -20,22 +20,22 @@ function parseList(s: string | null): string[] {
   }
 }
 
-/** 体检灯:红灯写在脸上,但不锁任何操作(地基第 3 条)。 */
+/**
+ * 体检灯:灯写在脸上,但不锁任何操作(地基第 3 条)。
+ * 三态 —— 绿=过了 / 缺=黄灯提醒 / 免=这类资料不查这项(灰,不参与判定)。
+ */
 function CheckPill({ c }: { c: Check }) {
+  const tone = {
+    绿: { box: "border-emerald-600/40 bg-emerald-600/10", dot: "bg-emerald-600" },
+    缺: { box: "border-amber-500/40 bg-amber-500/10", dot: "bg-amber-500" },
+    免: { box: "border-border bg-muted/40", dot: "bg-muted-foreground/40" },
+  }[c.态];
   return (
-    <div
-      className={
-        "rounded-lg border px-2.5 py-2 " +
-        (c.绿 ? "border-emerald-600/40 bg-emerald-600/10" : "border-amber-500/40 bg-amber-500/10")
-      }
-    >
+    <div className={"rounded-lg border px-2.5 py-2 " + tone.box}>
       <div className="flex items-center gap-1.5 text-xs font-medium">
-        <span
-          className={
-            "inline-block size-2 rounded-full " + (c.绿 ? "bg-emerald-600" : "bg-amber-500")
-          }
-        />
+        <span className={"inline-block size-2 rounded-full " + tone.dot} />
         {c.名}
+        {c.态 === "免" && <span className="text-[10px] font-normal text-muted-foreground">不判</span>}
       </div>
       <div className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{c.说明}</div>
     </div>
@@ -47,10 +47,11 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
   const detail = docDetail(Number(id));
   if (!detail) notFound();
 
-  const { doc, lane, checks, materials, assets, questions } = detail;
+  const { doc, lane, checks, materials, assets, questions, 成员, 被收录 } = detail;
   const kps = parseList(doc.考点);
-  const imgs = assets.filter((a) => a.类型 === "图A" || a.类型 === "图B");
-  const pdfs = assets.filter((a) => a.类型 === "题目卷" || a.类型 === "答案卷");
+  // 「卷」= 成品(题目卷/答案卷/合订卷),其余(图A/图B/页图/封面)都算图
+  const pdfs = assets.filter((a) => a.类型.endsWith("卷"));
+  const imgs = assets.filter((a) => !a.类型.endsWith("卷"));
 
   return (
     <div className="space-y-3">
@@ -127,6 +128,47 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
         </CardContent>
       </Card>
 
+      {/* 册级归属(doc_member):合刊列成员,成员标出处。题级引用是 collection_item,两回事 */}
+      {成员.length > 0 && (
+        <Card className="py-3">
+          <CardHeader className="px-3 pb-1">
+            <CardTitle className="text-sm">合刊成员 · {成员.length} 册</CardTitle>
+          </CardHeader>
+          <CardContent className="px-3 pt-0">
+            <div className="divide-y -my-1">
+              {成员.map((m, i) => (
+                <Link
+                  key={m.id}
+                  href={`/book/${m.id}`}
+                  className="flex items-center gap-2 py-2 hover:bg-secondary/60 -mx-3 px-3 transition-colors"
+                >
+                  <span className="text-xs text-muted-foreground tabular-nums w-4 shrink-0">
+                    {i + 1}
+                  </span>
+                  <span className="text-sm flex-1 min-w-0 truncate">{m.名称}</span>
+                  <span className="text-xs text-muted-foreground shrink-0">
+                    {m.题数 > 0 ? `${m.题数} 题` : "未拆题"}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {被收录.length > 0 && (
+        <Card className="py-3">
+          <CardContent className="px-3 text-sm">
+            <span className="text-muted-foreground text-xs">被收录 </span>
+            {被收录.map((m) => (
+              <Link key={m.id} href={`/book/${m.id}`} className="text-sky-600 hover:underline mr-2">
+                《{m.名称}》
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       <Tabs defaultValue="material">
         <TabsList className="w-full">
           <TabsTrigger value="material" className="flex-1">
@@ -195,7 +237,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
             <AssetGroup title="成品 PDF" rows={pdfs} />
           )}
           {imgs.length > 0 && (
-            <AssetGroup title={`小红书图 ${imgs.length} 张`} rows={imgs} collapsed />
+            <AssetGroup title={`图片 ${imgs.length} 张`} rows={imgs} collapsed />
           )}
         </TabsContent>
 
