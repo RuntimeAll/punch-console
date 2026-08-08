@@ -42,3 +42,6 @@ next-env.d.ts
 
 # 导入中间产物(parse_materials.py 的输出,可随时重跑再生)
 /.data/
+
+# 运行时日志
+v2-server.log
